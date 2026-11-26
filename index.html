@@ -1,0 +1,837 @@
+html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0284C7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Quiz 4.0" />
+  <title>Quiz Patente 4.0</title>
+  <script src="https://tailwindcss.com"></script>
+  <style>
+    @import url('https://googleapis.com');
+    body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; -webkit-tap-highlight-color: transparent; }
+    .silver-border { border: 1.5px solid #CBD5E1; }
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <div id="app" class="flex-1 flex flex-col max-w-4xl w-full mx-auto bg-[#F8FAFC] shadow-sm min-h-screen"></div>
+
+  <script>
+    // --- MANIFEST & ICONA PWA DINAMICA (FIAT 500 / 4.0) ---
+    (function setupPWA() {
+      const svgIcon = `<svg xmlns="http://w3.org" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#0284C7"/><circle cx="150" cy="145" r="52" fill="none" stroke="#FFFFFF" stroke-width="22"/><line x1="185" y1="180" x2="215" y2="210" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/><text x="235" y="135" fill="#CBD5E1" font-family="Arial,sans-serif" font-weight="900" font-size="48">4.0</text><text x="235" y="185" fill="#FFFFFF" font-family="Arial,sans-serif" font-weight="900" font-size="52">UIZAPP</text><path d="M95 340 Q120 245 245 245 Q355 245 405 315 L430 335 Q438 355 415 365 L95 365 Q80 355 95 340 Z" fill="none" stroke="#FFFFFF" stroke-width="14"/><circle cx="155" cy="368" r="34" fill="#0284C7" stroke="#CBD5E1" stroke-width="14"/><circle cx="365" cy="368" r="34" fill="#0284C7" stroke="#CBD5E1" stroke-width="14"/><circle cx="388" cy="318" r="14" fill="#FFFFFF"/></svg>`;
+      const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgIcon)));
+      const manifest = {
+        name: "Quiz Patente 4.0",
+        short_name: "Quiz 4.0",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#0284C7",
+        theme_color: "#0284C7",
+        icons: [{ src: iconUrl, sizes: "512x512", type: "image/svg+xml" }]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    })();
+
+    // --- TRADUZIONI 5 LINGUE ---
+    const LANGS = [
+      { code: 'it', label: 'IT', name: 'Italiano', voice: 'it-IT', flag: `<svg viewBox="0 0 3 2" class="w-6 h-4 rounded-sm shadow-xs"><rect width="1" height="2" x="0" fill="#009246"/><rect width="1" height="2" x="1" fill="#ffffff"/><rect width="1" height="2" x="2" fill="#ce2b37"/></svg>` },
+      { code: 'en', label: 'EN', name: 'English', voice: 'en-GB', flag: `<svg viewBox="0 0 60 30" class="w-6 h-4 rounded-sm shadow-xs"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></svg>` },
+      { code: 'de', label: 'DE', name: 'Deutsch', voice: 'de-DE', flag: `<svg viewBox="0 0 5 3" class="w-6 h-4 rounded-sm shadow-xs"><rect width="5" height="1" y="0" fill="#000"/><rect width="5" height="1" y="1" fill="#D00"/><rect width="5" height="1" y="2" fill="#FFCE00"/></svg>` },
+      { code: 'fr', label: 'FR', name: 'Français', voice: 'fr-FR', flag: `<svg viewBox="0 0 3 2" class="w-6 h-4 rounded-sm shadow-xs"><rect width="1" height="2" x="0" fill="#002395"/><rect width="1" height="2" x="1" fill="#fff"/><rect width="1" height="2" x="2" fill="#ED2939"/></svg>` },
+      { code: 'es', label: 'ES', name: 'Español', voice: 'es-ES', flag: `<svg viewBox="0 0 3 2" class="w-6 h-4 rounded-sm shadow-xs"><rect width="3" height="2" fill="#AA151B"/><rect width="3" height="1" y="0.5" fill="#F1BF00"/></svg>` }
+    ];
+
+    const T = {
+      it: {
+        start: "INIZIA", skip: "SALTA", next: "AVANTI", startNow: "INIZIA ORA",
+        welcomeTitle: "BENVENUTO", enterName: "Inserisci il tuo Nome...", confirm: "CONFERMA",
+        welcomeUser: "Benvenuto", installBanner: "Installa App su telefono o computer (Chrome/Safari → Aggiungi a schermata Home / Installa)",
+        simExam: "SIMULAZIONE ESAME", byTopic: "Quiz per Argomento", reviewErrors: "Ripasso Errori",
+        stats: "Statistiche", unlock: "SBLOCCA", lockMsg: "Prima devi completare l'esame!",
+        closeWarn: "Sei sicuro di voler chiudere? Devi ancora finire la scheda.",
+        submitWarn: "Hai lasciato delle domande senza risposta (verranno contate come errori). Vuoi consegnare comunque la scheda?",
+        yes: "SÌ", no: "NO", submitBtn: "Consegna Scheda", reviewLater: "Rivedi dopo",
+        passed: "IDONEO", failed: "RESPINTO", backHome: "Torna alla Home",
+        tut1T: "1. Scegli la tua Patente", tut1D: "Allenati per argomento con spiegazione immediata oppure avvia la simulazione ufficiale con timer.",
+        tut2T: "2. Rispondi e Ascolta", tut2D: "Usa i tasti V (Vero) e F (Falso) e tocca l'icona altoparlante per ascoltare ogni domanda.",
+        tut3T: "3. Raggiungi il 100%", tut3D: "Completa tutti gli argomenti e supera l'esame per sbloccare la tua tessera finale!"
+      },
+      en: {
+        start: "START", skip: "SKIP", next: "NEXT", startNow: "START NOW",
+        welcomeTitle: "WELCOME", enterName: "Enter your Name...", confirm: "CONFIRM",
+        welcomeUser: "Welcome", installBanner: "Install App on phone or PC (Browser menu → Install App / Add to Home Screen)",
+        simExam: "EXAM SIMULATION", byTopic: "Quiz by Topic", reviewErrors: "Review Mistakes",
+        stats: "Statistics", unlock: "UNLOCK", lockMsg: "You must complete the exam first!",
+        closeWarn: "Are you sure you want to close? You haven't finished the test yet.",
+        submitWarn: "You left unanswered questions (they will count as mistakes). Submit anyway?",
+        yes: "YES", no: "NO", submitBtn: "Submit Test", reviewLater: "Review later",
+        passed: "PASSED", failed: "FAILED", backHome: "Back to Home",
+        tut1T: "1. Choose Your License", tut1D: "Practice by topic with instant explanations or take the official timed exam.",
+        tut2T: "2. Answer & Listen", tut2D: "Use T (True) and F (False) buttons and tap the speaker icon to hear each question.",
+        tut3T: "3. Reach 100%", tut3D: "Complete all topics and pass the exam to unlock your final license card!"
+      },
+      de: {
+        start: "STARTEN", skip: "ÜBERSPRINGEN", next: "WEITER", startNow: "JETZT STARTEN",
+        welcomeTitle: "WILLKOMMEN", enterName: "Namen eingeben...", confirm: "BESTÄTIGEN",
+        welcomeUser: "Willkommen", installBanner: "App auf Handy oder PC installieren (Browser-Menü → App installieren)",
+        simExam: "PRÜFUNGSSIMULATION", byTopic: "Quiz nach Thema", reviewErrors: "Fehler wiederholen",
+        stats: "Statistiken", unlock: "FREISCHALTEN", lockMsg: "Du musst zuerst die Prüfung abschließen!",
+        closeWarn: "Möchtest du wirklich schließen? Der Bogen ist noch nicht fertig.",
+        submitWarn: "Unbeantwortete Fragen zählen als Fehler. Trotzdem abgeben?",
+        yes: "JA", no: "NEIN", submitBtn: "Bogen abgeben", reviewLater: "Später prüfen",
+        passed: "BESTANDEN", failed: "NICHT BESTANDEN", backHome: "Zur Startseite",
+        tut1T: "1. Führerschein wählen", tut1D: "Übe nach Themen mit sofortiger Erklärung oder starte die offizielle Prüfung.",
+        tut2T: "2. Antworten & Anhören", tut2D: "Nutze R (Richtig) und F (Falsch) und tippe auf den Lautsprecher zum Vorlesen.",
+        tut3T: "3. Erreiche 100%", tut3D: "Schließe alle Themen ab und bestehe die Prüfung für deine Karte!"
+      },
+      fr: {
+        start: "COMMENCER", skip: "PASSER", next: "SUIVANT", startNow: "DÉMARRER",
+        welcomeTitle: "BIENVENUE", enterName: "Entrez votre prénom...", confirm: "CONFIRMER",
+        welcomeUser: "Bienvenue", installBanner: "Installer l'application sur téléphone ou PC (Menu → Installer l'application)",
+        simExam: "SIMULATION D'EXAMEN", byTopic: "Quiz par Thème", reviewErrors: "Réviser les Erreurs",
+        stats: "Statistiques", unlock: "DÉBLOQUER", lockMsg: "Vous devez d'abord terminer l'examen !",
+        closeWarn: "Voulez-vous vraiment fermer ? Vous n'avez pas fini la fiche.",
+        submitWarn: "Questions sans réponse (comptées comme erreurs). Envoyer quand même ?",
+        yes: "OUI", no: "NON", submitBtn: "Valider la Fiche", reviewLater: "Revoir plus tard",
+        passed: "REÇU", failed: "AJOURNÉ", backHome: "Retour à l'Accueil",
+        tut1T: "1. Choisissez votre Permis", tut1D: "Entraînez-vous par thème ou lancez l'examen officiel chronométré.",
+        tut2T: "2. Répondre et Écouter", tut2D: "Utilisez V (Vrai) et F (Faux) et appuyez sur le haut-parleur pour écouter.",
+        tut3T: "3. Atteignez 100%", tut3D: "Terminez tous les thèmes et réussissez l'examen pour débloquer votre carte !"
+      },
+      es: {
+        start: "EMPEZAR", skip: "SALTAR", next: "SIGUIENTE", startNow: "EMPEZAR AHORA",
+        welcomeTitle: "BIENVENIDO", enterName: "Escribe tu Nombre...", confirm: "CONFIRMAR",
+        welcomeUser: "Bienvenido", installBanner: "Instalar App en móvil o PC (Menú del navegador → Instalar aplicación)",
+        simExam: "SIMULACIÓN DE EXAME
+stats: "Estadísticas", unlock: "DESBLOQUEAR", lockMsg: "¡Primero debes completar el examen!",
+closeWarn: "¿Seguro que quieres cerrar? Aún no has terminado el test.",
+submitWarn: "Dejaste preguntas sin responder (contarán como fallos). ¿Entregar igual?",
+yes: "SÍ", no: "NO", submitBtn: "Entregar Test", reviewLater: "Revisar luego",
+passed: "APROBADO", failed: "SUSPENSO", backHome: "Volver al Inicio",
+tut1T: "1. Elige tu Permiso", tut1D: "Practica por temas con explicación inmediata o haz el examen oficial con tiempo.",
+tut2T: "2. Responde y Escucha", tut2D: "Usa V (Verdadero) y F (Falso) y pulsa el altavoz para escuchar cada pregunta.",
+tut3T: "3. Llega al 100%", tut3D: "¡Completa todos los temas y aprueba el examen para desbloquear tu carné!"
+}
+};
+// --- 6 MACRO-CATEGORIE E TEMPI UFFICIALI ---
+const CATEGORIES = [
+{
+id: 'base', title: 'AM, A1/A2/A e B1/B/BE', subtitle: 'Ciclomotori, Moto, Auto e Rimorchi', color: '#0284C7', group: 'ab',
+subs: [
+{ id: 'AM', name: 'Patente AM (Ciclomotori)', mins: 20, qCount: 30, maxErr: 3, opts: 2, cascade: ['AM'] },
+{ id: 'A1', name: 'Patenti A1, A2, A (Moto)', mins: 20, qCount: 30, maxErr: 3, opts: 2, cascade: ['AM', 'A1'] },
+{ id: 'B', name: 'Patenti B1, B (Auto)', mins: 20, qCount: 30, maxErr: 3, opts: 2, cascade: ['AM', 'A1', 'B'] },
+{ id: 'BE', name: 'Patente BE (Auto + Rimorchio)', mins: 20, qCount: 30, maxErr: 3, opts: 2, cascade: ['AM', 'A1', 'BE'] }
+]
+},
+{
+id: 'sup', title: 'Patenti Superiori C e D', subtitle: 'Camion, Autobus e Rimorchi Pesanti', color: '#EA580C', group: 'sup',
+subs: [
+{ id: 'C1', name: 'Patente C1 (Camion leggeri)', mins: 20, qCount: 20, maxErr: 2, opts: 2, cascade: ['AM', 'A1', 'B', 'C1'] },
+{ id: 'C1E', name: 'Patente C1E (C1 + Rimorchio)', mins: 20, qCount: 20, maxErr: 2, opts: 2, cascade: ['AM', 'A1', 'B', 'C1E'] },
+{ id: 'C', name: 'Patente C (Camion pesanti)', mins: 40, qCount: 40, maxErr: 4, opts: 2, cascade: ['AM', 'A1', 'B', 'C'] },
+{ id: 'CE', name: 'Patente CE (Autoarticolati)', mins: 40, qCount: 40, maxErr: 4, opts: 2, cascade: ['AM', 'A1', 'B', 'CE'] },
+{ id: 'D1', name: 'Patente D1 (Minibus)', mins: 20, qCount: 20, maxErr: 2, opts: 2, cascade: ['AM', 'A1', 'B', 'D1'] },
+{ id: 'D1E', name: 'Patente D1E (D1 + Rimorchio)', mins: 20, qCount: 20, maxErr: 2, opts: 2, cascade: ['AM', 'A1', 'B', 'D1E'] },
+{ id: 'D', name: 'Patente D (Autobus)', mins: 40, qCount: 40, maxErr: 4, opts: 2, cascade: ['AM', 'A1', 'B', 'D'] },
+{ id: 'DE', name: 'Patente DE (Autosnodati)', mins: 40, qCount: 40, maxErr: 4, opts: 2, cascade: ['AM', 'A1', 'B', 'DE'] }
+]
+},
+{
+id: 'cqc', title: 'CQC Merci e Persone', subtitle: 'Qualificazione Professionale Conducenti', color: '#16A34A', group: 'sup',
+subs: [
+{ id: 'CQC_FULL', name: 'CQC Base Completo (Comune + Spec.)', mins: 90, qCount: 70, maxErr: 7, opts: 2, cascade: ['CQC MERCI / PERSONE'] },
+{ id: 'CQC_EXT', name: 'CQC Estensione / Ripristino', mins: 40, qCount: 30, maxErr: 3, opts: 2, cascade: ['CQC ESTENSIONE'] }
+]
+},
+{
+id: 'cap', title: 'CAP KA / KB – Taxi e NCC', subtitle: 'Certificato Abilitazione Professionale', color: '#7C3AED', group: 'sup',
+subs: [
+{ id: 'CAP_KB', name: 'CAP KA / KB (3 opzioni di risposta)', mins: 30, qCount: 20, maxErr: 2, opts: 3, cascade: ['CAP KA / KB'] }
+]
+},
+{
+id: 'nautica', title: 'Patente Nautica', subtitle: 'Entro 12 Miglia e Senza Limiti', color: '#1E3A8A', group: 'nautica',
+subs: [
+{ id: 'NAUT_12', name: 'Entro 12 Miglia dalla Costa', mins: 30, qCount: 20, maxErr: 4, opts: 2, cascade: ['NAUTICA ENTRO 12 MIGLIA'] },
+{ id: 'NAUT_INF', name: 'Senza Limiti dalla Costa', mins: 20, qCount: 13, maxErr: 2, opts: 2, cascade: ['NAUTICA SENZA LIMITI'] }
+]
+},
+{
+id: 'rev', title: 'Revisione Patente', subtitle: 'Recupero Punti e Idoneità Tecnica', color: '#D97706', group: 'ab',
+subs: [
+{ id: 'REV_AM', name: 'Revisione AM', mins: 20, qCount: 20, maxErr: 2, opts: 2, cascade: ['REVISIONE AM'] },
+{ id: 'REV_ALL', name: 'Revisione A1/A2/A, B1/B/BE, C e D', mins: 30, qCount: 30, maxErr: 3, opts: 2, cascade: ['REVISIONE PATENTE'] }
+]
+}
+];
+// --- TUTTI E 25 I CAPITOLI UFFICIALI AM/A/B + SUPERIORI/CQC/CAP/NAUTICA ---
+const TOPICS_BY_CAT = {
+base: [
+{ sec: 'Sezione 1 – Definizioni, Pericolo e Precedenza', items: [
+{ id: 't1', name: "1. Definizioni stradali e doveri nell'uso della strada", color: '#475569' },
+{ id: 't2', name: "2. Segnali di pericolo", color: '#DC2626' },
+{ id: 't3', name: "3. Segnali di precedenza", color: '#EA580C' }
+]},
+{ sec: 'Sezione 2 – Segnali di Prescrizione', items: [
+{ id: 't4', name: "4. Segnali di divieto", color: '#991B1B' },
+{ id: 't5', name: "5. Segnali di obbligo", color: '#1D4ED8' }
+]},
+{ sec: 'Sezione 3 – Segnali di Indicazione, Temporanei e Semafori', items: [
+{ id: 't6', name: "6. Segnali di indicazione", color: '#2563EB' },
+{ id: 't7', name: "7. Segnali temporanei e di cantiere", color: '#F59E0B' },
+{ id: 't8', name: "8. Pannelli integrativi dei segnali", color: '#0284C7' },
+{ id: 't9', name: "9. Segnaletica orizzontale e segni sugli ostacoli", color: '#EAB308' },
+{ id: 't10', name: "10. Segnalazioni semaforiche e degli agenti del traffico", color: '#CA8A04' }
+]},
+{ sec: 'Sezione 4 – Norme di Circolazione e Incroci', items: [
+{ id: 't11', name: "11. Limiti di velocità, pericolo e intralcio alla circolazione", color: '#0284C7' },
+{ id: 't12', name: "12. Distanza di sicurezza", color: '#0EA5E9' },
+{ id: 't13', name: "13. Norme sulla circolazione dei veicoli", color: '#16A34A' },
+{ id: 't14', name: "14. Esempi di precedenza agli incroci", color: '#EA580C' },
+{ id: 't15', name: "15. Norme sul sorpasso", color: '#15803D' },
+{ id: 't16', name: "16. Fermata, sosta, arresto e partenza", color: '#0369A1' },
+{ id: 't17', name: "17. Ingombro carreggiata, autostrade, gallerie e traino", color: '#16A34A' }
+]},
+{ sec: 'Sezione 5 – Veicolo, Sicurezza, Documenti e Ambiente', items: [
+{ id: 't18', name: "18. Uso delle luci, dispositivi acustici, spie e simboli", color: '#EAB308' },
+{ id: 't19', name: "19. Dispositivi di equipaggiamento: cinture, casco e seggiolini", color: '#7C3AED' },
+{ id: 't20', name: "20. Patenti di guida, punti e documenti di circolazione", color: '#475569' },
+{ id: 't21', name: "21. Prevenzione incidenti e comportamento in caso di incidente", color: '#DC2626' },
+{ id: 't22', name: "22. Condizioni psicofisiche, alcol, droga e primo soccorso", color: '#6D28D9' },
+{ id: 't23', name: "23. Responsabilità civile, penale e assicurazione RCA", color: '#334155' },
+{ id: 't24', name: "24. Limitazione dei consumi, rispetto dell'ambiente e inquinamento", color: '#16A34A' },
+{ id: 't25', name: "25. Elementi costitutivi del veicolo, manutenzione e stabilità", color: '#991B1B' }
+]}
+],
+sup: [{ sec: 'Moduli Ufficiali Patenti Superiori C/D/E', items: [
+{ id: 's1', name: "1. Limiti di sagoma, massa e sistemazione del carico", color: '#EA580C' },
+{ id: 's2', name: "2. Cronotachigrafo e tempi di guida e riposo", color: '#0284C7' },
+{ id: 's3', name: "3. Impianto frenante ad aria, sospensioni e meccanica", color: '#DC2626' },
+{ id: 's4', name: "4. Aggancio rimorchi e semirimorchi", color: '#1D4ED8' },
+{ id: 's5', name: "5. Trasporto merci pericolose ADR e documenti", color: '#475569' },
+{ id: 's6', name: "6. Trasporto passeggeri e uscite di sicurezza Patente D", color: '#16A34A' }
+]}],
+cqc: [{ sec: 'Moduli Ufficiali CQC', items: [
+{ id: 'c1', name: "1. Guida razionale e sicurezza (Parte Comune)", color: '#16A34A' },
+{ id: 'c2', name: "2. Regolamentazione sociale e cronotachigrafo", color: '#0284C7' },
+{ id: 'c3', name: "3. Fissaggio del carico e documenti (Specifica Merci)", color: '#EA580C' },
+{ id: 'c4', name: "4. Sicurezza passeggeri e scuolabus (Specifica Persone)", color: '#7C3AED' }
+]}],
+cap: [{ sec: 'Moduli Ufficiali CAP KA / KB', items: [
+{ id: 'k1', name: "1. Normativa Taxi e NCC", color: '#7C3AED' },
+{ id: 'k2', name: "2. Circolazione urbana e toponomastica", color: '#0284C7' },
+{ id: 'k3', name: "3. Tariffe e tassametro", color: '#16A34A' },
+{ id: 'k4', name: "4. Comportamento con l'utenza, bagagli e sanzioni", color: '#EA580C' }
+]}],
+nautica: [{ sec: 'Moduli Ufficiali Patente Nautica', items: [
+{ id: 'n1', name: "1. Teoria dello scafo, motore e manovre", color: '#1E3A8A' },
+{ id: 'n2', name: "2. Precedenze, fanali COLREG e boe IALA", color: '#DC2626' },
+{ id: 'n3', name: "3. Meteorologia marina e dotazioni di sicurezza", color: '#7C3AED' },
+{ id: 'n4', name: "4. Carte nautiche, bussola e carteggio", color: '#16A34A' }
+]}]
+};
+TOPICS_BY_CAT.rev = TOPICS_BY_CAT.base;
+// --- PACCHETTO INIZIALE DI QUIZ MINISTERIALI UFFICIALI CON SVG A COLORI ---
+const SVG_SIGNS = {
+pericolo_generico: <svg viewBox="0 0 100 90" class="w-20 h-20 mx-auto"><polygon points="50,6 94,84 6,84" fill="#FFFFFF" stroke="#DC2626" stroke-width="9" stroke-linejoin="round"/><rect x="46" y="34" width="8" height="26" rx="3" fill="#0F172A"/><circle cx="50" cy="69" r="5" fill="#0F172A"/></svg>,
+divieto_accesso: <svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><circle cx="50" cy="50" r="42" fill="#DC2626"/><rect x="20" y="42" width="60" height="16" rx="2" fill="#FFFFFF"/></svg>,
+obbligo_diritto: <svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><circle cx="50" cy="50" r="42" fill="#1D4ED8"/><path d="M50 22 L50 76 M50 22 L34 38 M50 22 L66 38" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>,
+stop: <svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><polygon points="32,8 68,8 92,32 92,68 68,92 32,92 8,68 8,32" fill="#DC2626" stroke="#FFFFFF" stroke-width="4"/><text x="50" y="59" text-anchor="middle" fill="#FFFFFF" font-family="Arial" font-weight="900" font-size="25">STOP</text></svg>
+};
+const DEFAULT_QUESTIONS = [
+{ id: 'q1', cat: 'base', topic: 't1', text: "La carreggiata è la parte della strada destinata normalmente alla circolazione dei veicoli.", ans: true, img: '', exp: "Esatto: la carreggiata è composta da una o più corsie ed è riservata alla circolazione dei veicoli (non comprende i marciapiedi)." },
+{ id: 'q2', cat: 'base', topic: 't2', text: "Il segnale raffigurato preannuncia un pericolo generico diverso da quelli per cui è previsto un segnale specifico.", ans: true, img: 'pericolo_generico', exp: "Il triangolo con il punto esclamativo indica un pericolo generico, spesso accompagnato da un pannello integrativo." },
+{ id: 'q3', cat: 'base', topic: 't4', text: "Il segnale raffigurato vieta l'accesso ai veicoli in entrambi i sensi di marcia.", ans: false, img: 'divieto_accesso', exp: "Falso: il segnale di Senso Vietato vieta l'entrata da quel lato, ma consente l'uscita dei veicoli provenienti dal senso opposto." },
+{ id: 'q4', cat: 'base', topic: 't5', text: "Il segnale raffigurato obbliga i conducenti a proseguire diritto all'incrocio.", ans: true, img: 'obbligo_diritto', exp: "Vero: il disco blu con freccia bianca verso l'alto indica direzione obbligatoria diritto." },
+{ id: 'q5', cat: 'base', topic: 't3', text: "In presenza del segnale raffigurato è obbligatorio arrestarsi alla striscia trasversale e dare la precedenza.", ans: true, img: 'stop', exp: "Vero: il segnale ottagonale STOP impone sempre di fermarsi prima di impegnare l'incrocio." },
+{ id: 'q6', cat: 'base', topic: 't11', text: "Il limite massimo di velocità sulle autostrade è di 130 km/h per le autovetture, ridotto a 110 km/h in caso di precipitazioni atmosferiche.", ans: true, img: '', exp: "Vero: in caso di pioggia o neve il limite in autostrada scende da 130 a 110 km/h." },
+{ id: 'q7', cat: 'base', topic: 't12', text: "La distanza di sicurezza deve essere sempre commisurata alla velocità, alla prontezza dei riflessi e allo stato del veicolo.", ans: true, img: '', exp: "Vero: la distanza di sicurezza serve a evitare tamponamenti anche in caso di frenata improvvisa del veicolo che precede." },
+{ id: 'q8', cat: 'base', topic: 't15', text: "È consentito il sorpasso in prossimità o in corrispondenza dei dossi su strade a doppio senso con una sola corsia per senso di marcia.", ans: false, img: '', exp: "Falso: sui dossi a doppio senso con visibilità limitata il sorpasso è severamente vietato." },
+{ id: 'q9', cat: 'sup', topic: 's2', text: "Il periodo di guida giornaliero di un conducente soggetto al regolamento CE 561/2006 non deve superare normalmente le 9 ore.", ans: true, img: '', exp: "Vero: il limite ordinario è 9 ore al giorno, estendibile a 10 ore al massimo due volte a settimana." },
+{ id: 'q10', cat: 'sup', topic: 's1', text: "La larghezza massima consentita per i veicoli adibiti al trasporto di merci non deperibili è di 2,55 metri.", ans: true, img: '', exp: "Vero: 2,55 m è la larghezza massima standard (2,60 m solo per veicoli isotermici ATP)." },
+{ id: 'q11', cat: 'cqc', topic: 'c1', text: "La guida eco-compatibile prevede di cambiare marcia a bassi regimi di rotazione del motore sfruttando la coppia massima.", ans: true, img: '', exp: "Vero: mantenere il contagiri nella fascia verde riduce consumi ed emissioni." },
+{ id: 'q12', cat: 'cap', topic: 'k1', text: "Il servizio di piazza con autovettura (Taxi) è rivolto:", ans: 0, options: ["A un'utenza indifferenziata con stazionamento in luogo pubblico", "Esclusivamente a clienti prenotati in rimessa", "Solo al trasporto di merci leggere"], exp: "Il Taxi staziona in aree pubbliche ed è rivolto a chiunque ne faccia richiesta." },
+{ id: 'q13', cat: 'nautica', topic: 'n2', text: "In navigazione, due unità a motore che si incrociano con rotta di collisione devono accostare entrambe a dritta.", ans: true, img: '', exp: "Vero: secondo le regole COLREG, due navi a motore con rotte opposte accostano entrambe a dritta." },
+{ id: 'q14', cat: 'rev', topic: 't20', text: "La perdita totale del punteggio sulla patente comporta l'obbligo di sottoporsi all'esame di revisione.", ans: true, img: '', exp: "Vero: azzerando i 20 punti viene disposta la revisione tecnica della patente." }
+];
+// --- 5 FRASI IN RIMA PER OGNI CATEGORIA ---
+const RHYMES = {
+ab: {
+ok: [
+"Scheda perfetta, zero paura, ormai la patente è cosa sicura!",
+"Che grande risultato, l'esame di guida è già conquistato!",
+"Risposte esatte, mente brillante, sei già pronto a metterti al volante!",
+"Idoneo alla grande, senza un errore, della strada sei già il migliore!",
+"Hai fatto centro al primo colpo, su due o quattro ruote sarai un lampo!"
+],
+ko: [
+"Oggi respinto, ma non ti fermare, sbaglia qui per non sbagliare a guidare!",
+"Qualche errore ci può stare, riprova subito e saprai brillare!",
+"Non mollare al primo intoppo, la prossima volta andrai al galoppo!",
+"Guarda gli errori e fai attenzione, al prossimo giro sarà un successone!",
+"Respinto per poco, non ti scoraggiare, chi non si arrende arriva a guidare!"
+]
+},
+sup: {
+ok: [
+"Guida pesante da vero campione, questa scheda è una promozione!",
+"Sei idoneo, che gran professionista, hai tutta la strada a perdita d'vista!",
+"Con questo punteggio così brillante, sei il re assoluto del volante!",
+"Nessun segreto su merci e motore, hai superato la prova da vero signore!",
+"Scheda brillante, zero difetti, per i mezzi pesanti hai i numeri perfetti!"
+],
+ko: [
+"Anche i giganti hanno un momento no, riprova la scheda e dirai ce la fo!",
+"Controlla gli errori con calma e rigore, al prossimo tentativo sarai il migliore!",
+"Frena un secondo e guarda lo sbaglio, tornerai in pista senza alcun travaglio!",
+"Oggi respinto, ma non mollare, la qualifica saprai conquistare!",
+"Un piccolo stop lungo il tuo viaggio, riprova adesso con più coraggio!"
+]
+},
+nautica: {
+ok: [
+"Vento in poppa e rotta sicura, hai superato anche questa avventura!",
+"Sei idoneo, ottimo comandante, ormai sei pronto per il mare aperto e distante!",
+"Tra boe, fanali e precedenze in mare, nessuno ormai ti può più fermare!",
+"Ancora salpata e zero errori, per navigare hai i numeri migliori!",
+"Che navigatore preciso e brillante, la patente nautica è già lì davanti!"
+],
+ko: [
+"Oggi respinto, ma non ti fermare, sbaglia qui per non sbagliare in mare!",
+"Qualche onda alta ti ha fatto sbandare, riprova la scheda e saprai navigare!",
+"Controlla la rotta e guarda l'errore, al prossimo giro sarai il migliore!",
+"Non gettare l'ancora al primo intoppo, la prossima volta andrai al galoppo!",
+"Respinto per poco, non ti scoraggiare, chi studia le carte arriva a salpare!"
+]
+}
+};
+// --- STATO PERSISTENTE (LOCALSTORAGE) ---
+const DB_KEY = 'quiz_patente_40_db_v1';
+function loadDB() {
+const raw = localStorage.getItem(DB_KEY);
+if (raw) return JSON.parse(raw);
+return {
+adminUser: 'admin26',
+adminPass: 'quizpatente.26',
+questions: DEFAULT_QUESTIONS,
+users: {} // { [name]: { name, blocked: false, progress: { [subId]: { topics: {}, errors: [], examPassed: false, unlockDate: null } }, history: [] } }
+};
+}
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+let db = loadDB();
+let state = {
+screen: 'cover', // cover | tutorial | welcome | home | cat_subs | sub_menu | quiz | result | admin_login | admin_panel | print_sheet
+lang: 'it',
+audioEnabled: true,
+tutStep: 0,
+currentUser: localStorage.getItem('qp40_last_user') || '',
+selectedCat: null,
+selectedSub: null,
+quizMode: 'exam', // exam | topic | errors
+quizTopicId: null,
+quizQuestions: [],
+quizAnswers: {},
+quizFlagged: {},
+quizIndex: 0,
+timerSec: 0,
+timerInterval: null,
+modal: null, // close_warn | submit_warn | lock_warn | clown_card
+lastResult: null,
+adminTab: 'users',
+adminSelectedUser: null,
+printSheetData: null
+};
+function t(key) { return (T[state.lang] && T[state.lang][key]) || T.it[key] || key; }
+function speak(text) {
+if (!state.audioEnabled || !('speechSynthesis' in window)) return;
+window.speechSynthesis.cancel();
+const u = new SpeechSynthesisUtterance(text);
+const langObj = LANGS.find(l => l.code === state.lang);
+u.lang = langObj ? langObj.voice : 'it-IT';
+u.rate = 0.96;
+window.speechSynthesis.speak(u);
+}
+function playTone(ok) {
+if (!state.audioEnabled) return;
+try {
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.connect(gain); gain.connect(ctx.destination);
+osc.frequency.value = ok ? 587.33 : 220;
+gain.gain.setValueAtTime(0.15, ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+osc.start(); osc.stop(ctx.currentTime + 0.35);
+} catch(e) {}
+}
+function ensureUser(name) {
+const clean = name.trim();
+if (!db.users[clean]) {
+db.users[clean] = { name: clean, blocked: false, progress: {}, history: [] };
+saveDB(db);
+}
+return db.users[clean];
+}
+function getSubProgress(userName, subId) {
+const u = ensureUser(userName);
+if (!u.progress[subId]) {
+u.progress[subId] = { topics: {}, errors: [], examPassed: false, unlockDate: null };
+saveDB(db);
+}
+return u.progress[subId];
+}
+// --- RENDERING COMPONENTI ---
+function renderTopBar(showBack = false, backAction = '') {
+const langButtons = LANGS.map(l => <button onclick="setLang('${l.code}')" title="${l.name}" class="p-1 rounded border ${state.lang === l.code ? 'border-[#0284C7] bg-sky-50 scale-105' : 'border-slate-200 opacity-75 hover:opacity-100'} transition"> ${l.flag} </button>).join('');
+return `
+${showBack ? <button onclick="${backAction}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 text-sm">←</button> : ''}
+
+Q
+4.0 QUIZ PATENTE
+
+
+
+${langButtons}
+?
+
+${state.audioEnabled
+? <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+: <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>}
+
+Admin
+
+
+`;
+}
+function renderCover() {
+return `
+
+
+
+
+
+
+
+
+4.0
+UIZAPP
+
+
+${t('start')}
+
+
+
+`;
+}
+function renderTutorial() {
+const steps = [
+{ title: t('tut1T'), desc: t('tut1D'), num: '01 / 03' },
+{ title: t('tut2T'), desc: t('tut2D'), num: '02 / 03' },
+{ title: t('tut3T'), desc: t('tut3D'), num: '03 / 03' }
+];
+const cur = steps[state.tutStep];
+return <div class="flex-1 flex flex-col justify-between p-6 bg-[#F8FAFC]"> <div class="flex justify-between items-center"> <span class="text-xs font-extrabold text-[#0284C7] tracking-widest">${cur.num}</span> <div class="flex gap-1.5"> ${[0,1,2].map(i =>`).join('')}
+
+${state.tutStep + 1}
+
+${cur.title}
+${cur.desc}
+${t('skip')}
+
+
+${state.tutStep < 2 ? t('next') : t('startNow')}
+
+
+
+`;
+}
+function renderWelcome() {
+const langButtons = LANGS.map(l => <button onclick="setLang('${l.code}')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border ${state.lang === l.code ? 'border-[#0284C7] bg-sky-50 font-bold text-[#0284C7]' : 'border-slate-300 bg-white text-slate-600'}"> ${l.flag} <span class="text-xs">${l.label}</span> </button>).join('');
+return `
+
+
+${langButtons}
+${t('welcomeTitle')}
+QUIZ PATENTE 4.0
+${t('confirm')}
+
+
+
+`;
+}
+function renderHome() {
+const userObj = db.users[state.currentUser];
+if (userObj && userObj.blocked) {
+return `
+${renderTopBar()}
+
+
+Profilo Bloccato
+Contatta l'amministratore per riattivare l'accesso.
+Cambia Utente
+
+
+`;
+}
+const cards = CATEGORIES.map(cat => `
+
+
+
+
+${cat.title}
+${cat.subtitle}
+→
+
+
+`).join('');
+return `
+${renderTopBar()}
+
+
+QUIZ PATENTE 4.0
+${t('welcomeUser')} ${state.currentUser}
+
+Cambia Nome
+${t('installBanner')}
+${cards}
+
+
+`;
+}
+function renderCategorySubs() {
+const cat = state.selectedCat;
+const items = cat.subs.map(sub => {
+const prog = getSubProgress(state.currentUser, sub.id);
+const topicsList = TOPICS_BY_CAT[cat.id].flatMap(s => s.items);
+const avgPct = Math.round(topicsList.reduce((acc, tp) => acc + (prog.topics[tp.id] || 0), 0) / topicsList.length);
+return `
+
+
+${sub.name}
+\({sub.mins} min • \){sub.qCount} domande • max ${sub.maxErr} errori
+${avgPct}%
+→
+
+
+`;
+}).join('');
+return `
+${renderTopBar(true, "goHome()")}
+
+
+${cat.title}
+${cat.subtitle}
+${items}
+
+`;
+}
+function renderSubMenu() {
+const cat = state.selectedCat;
+const sub = state.selectedSub;
+const prog = getSubProgress(state.currentUser, sub.id);
+const sections = TOPICS_BY_CAT[cat.id];
+const allTopics = sections.flatMap(s => s.items);
+const all100 = allTopics.every(tp => (prog.topics[tp.id] || 0) >= 100);
+const canUnlock = all100 && prog.examPassed;
+const sectionsHtml = sections.map(sec => <div class="space-y-2"> <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 px-1 pt-2">${sec.sec}</h4> ${sec.items.map(tp => { const pct = Math.min(100, prog.topics[tp.id] || 0); return
+
+${tp.name}
+
+
+${pct}%
+
+
+
+; }).join('')} </div> ).join('');
+// Statistiche a ciambella 3 spicchi
+const totalAns = (prog.correctCount || 0) + (prog.wrongCount || 0);
+const totalPool = allTopics.length * 5;
+const greenPct = Math.min(100, Math.round(((prog.correctCount || 0) / totalPool) * 100));
+const redPct = Math.min(100 - greenPct, Math.round(((prog.wrongCount || 0) / totalPool) * 100));
+const remPct = Math.max(0, 100 - greenPct - redPct);
+return `
+${renderTopBar(true, "backToSubs()")}
+
+
+
+
+${sub.name}
+\({sub.mins} min • \){sub.qCount} domande • max ${sub.maxErr} errori
+Cambia Patente
+
+
+${t('simExam')}
+
+${t('reviewErrors')}
+${prog.errors.length}
+
+
+
+${greenPct}%
+
+
+Esatte: ${greenPct}%
+Errori: ${redPct}%
+Restanti: ${remPct}%
+    </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-weight:800;margin-bottom:10px">${t('args')}</div>
+          ${TOPICS_AB.map(tp => {
+            const p = prog.topics[tp.id] || 0;
+            return `<div class="arg-row" onclick="startQuiz('topic', ${tp.id})">
+              <div style="font-weight:700;padding-right:10px">${tp.name}</div>
+              <div class="donut" style="background:conic-gradient(${tp.color} ${p * 3.6}deg, #E2E8F0 0deg)">
+                <div class="donut-inner">${p}%</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        ${prog.unlocked ? `
+          <div class="license-card">
+            <div style="font-size:11px;font-weight:800;color:#0284C7;letter-spacing:1px">PATENTE UFFICIALE ABILITATA</div>
+            <div style="display:flex;gap:14px;align-items:center;margin-top:10px">
+              <svg width="74" height="74" viewBox="0 0 100 100" style="background:#FFF;border-radius:10px;border:1.5px solid #0284C7;flex-shrink:0">
+                <circle cx="22" cy="40" r="14" fill="#DC2626"/><circle cx="78" cy="40" r="14" fill="#DC2626"/>
+                <circle cx="50" cy="52" r="28" fill="#FDE68A"/>
+                <circle cx="40" cy="46" r="4" fill="#0F172A"/><circle cx="60" cy="46" r="4" fill="#0F172A"/>
+                <circle cx="50" cy="56" r="7" fill="#DC2626"/>
+                <path d="M36 68 Q50 80 64 68" stroke="#DC2626" stroke-width="4" fill="none"/>
+                <polygon points="35,88 50,82 50,94" fill="#0284C7"/><polygon points="65,88 50,82 50,94" fill="#0284C7"/>
+              </svg>
+              <div>
+                <div style="font-size:18px;font-weight:900">${state.currentUser.toUpperCase()}</div>
+                <div style="font-size:13px;margin-top:4px"><b>4a.</b> ${prog.unlockDate}</div>
+                <div style="margin-top:8px;background:#FFF;padding:4px 10px;border-radius:8px;font-weight:900;color:#0284C7;display:inline-block">${currentSub.badge}</div>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <div class="blur-card">
+            <div style="filter:blur(5px);opacity:0.5;font-weight:800;margin-bottom:10px">TESSERA RISERVATA • 100% COMPLETAMENTO</div>
+            <button class="primary-btn" style="width:auto;padding:10px 28px" onclick="tryUnlock()">${t('unlock')}</button>
+          </div>
+        `}
+      </div>`;
+  } else if (view === 'quiz') {
+    const q = quizList[qIdx];
+    const groups = Math.ceil(quizList.length / 10);
+    const curGroup = Math.floor(qIdx / 10);
+    app.innerHTML = renderTopbar() + `
+      <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-weight:900;color:#0284C7">${quizMode === 'sim' ? 'Tempo: ' + Math.floor(timerSec/60) + ':' + String(timerSec%60).padStart(2,'0') : 'Allenamento'}</div>
+          <button class="icon-btn" style="background:#FEE2E2;color:#DC2626" onclick="askCloseQuiz()">X</button>
+        </div>
+        ${quizMode === 'sim' ? `
+          <div class="block-tabs">
+            ${Array.from({length: groups}, (_, g) => `<div class="block-tab ${g===curGroup?'active':''}" onclick="qIdx=${g*10};render()">${g*10+1}-${Math.min((g+1)*10, quizList.length)}</div>`).join('')}
+          </div>
+          <div class="q-grid">
+            ${Array.from({length: Math.min(10, quizList.length - curGroup*10)}, (_, i) => {
+              const idx = curGroup*10 + i;
+              const cls = flagged[idx] ? 'flagged' : (answers[idx] !== undefined ? 'answered' : '');
+              return `<div class="q-num ${cls} ${idx===qIdx?'current':''}" onclick="qIdx=${idx};render()">${idx+1}</div>`;
+            }).join('')}
+          </div>
+        ` : ''}
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div style="font-size:17px;font-weight:700;line-height:1.4">${qIdx+1}) ${q.text}</div>
+            <button class="icon-btn" onclick="speak('${q.text.replace(/'/g,"\\'")}')">Audio</button>
+          </div>
+          <div class="vf-row">
+            <button class="vf-btn ${answers[qIdx]===true ? (quizMode==='topic' ? (q.ans===true?'correct':'wrong') : 'selected') : ''}" onclick="answerQ(true)">V</button>
+            <button class="vf-btn ${answers[qIdx]===false ? (quizMode==='topic' ? (q.ans===false?'correct':'wrong') : 'selected') : ''}" onclick="answerQ(false)">F</button>
+          </div>
+          ${quizMode === 'topic' && answers[qIdx] !== undefined && answers[qIdx] !== q.ans ? `
+            <div style="margin-top:14px;padding:12px;background:#FEF2F2;border:1.5px solid #DC2626;border-radius:10px;color:#991B1B">
+              <b>Risposta esatta: ${q.ans ? 'VERO' : 'FALSO'}</b><br>${q.exp}
+              <button class="icon-btn" style="margin-top:8px" onclick="speak('${q.exp.replace(/'/g,"\\'")}')">Ascolta spiegazione</button>
+            </div>
+          ` : ''}
+          <div style="display:flex;justify-content:space-between;margin-top:16px;gap:10px">
+            <button class="icon-btn" onclick="if(qIdx>0){qIdx--;render()}">Indietro</button>
+            ${quizMode === 'sim' ? `<button class="icon-btn" style="background:#FEF9C3" onclick="flagged[${qIdx}]=!flagged[${qIdx}];render()">Rivedi</button>` : ''}
+            ${qIdx < quizList.length - 1 ? `<button class="primary-btn" style="width:auto" onclick="qIdx++;render()">Avanti</button>` : `<button class="primary-btn" style="width:auto;background:#16A34A" onclick="askSubmitQuiz()">${quizMode==='sim' ? t('deliver') : 'Fine'}</button>`}
+          </div>
+        </div>
+      </div>`;
+  } else if (view === 'result') {
+    const passed = lastResult.errors <= currentSub.maxErr;
+    app.innerHTML = renderTopbar() + `
+      <div class="container">
+        <div class="card" style="text-align:center;padding:24px">
+          <div style="font-size:32px;font-weight:900;color:${passed?'#16A34A':'#DC2626'}">${passed ? t('pass') : t('fail')}</div>
+          <div style="font-size:16px;font-weight:800;margin-top:10px;color:${passed?'#16A34A':'#DC2626'}">"${lastResult.rhyme}"</div>
+          <div style="margin-top:12px;font-weight:700">Errori: ${lastResult.errors} / Max consentiti: ${currentSub.maxErr}</div>
+          <button class="primary-btn" style="margin-top:16px" onclick="view='license';render()">Torna alla Patente</button>
+        </div>
+        ${lastResult.wrongList.map(w => `<div class="card" style="border-left:6px solid #DC2626"><b>${w.text}</b><br><span style="color:#16A34A;font-weight:700">Risposta esatta: ${w.ans?'VERO':'FALSO'}</span><br><small>${w.exp}</small></div>`).join('')}
+      </div>`;
+  } else if (view === 'admin') {
+    app.innerHTML = renderTopbar() + `
+      <div class="container">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:20px;font-weight:900">Pannello Controllo Admin (${state.adminUser})</div>
+            <button class="icon-btn" onclick="view='home';render()">Esci</button>
+          </div>
+          <div style="margin-top:14px;padding:12px;background:#F8FAFC;border-radius:10px;border:1px solid #CBD5E1">
+            <b>Importa Listati Ufficiali (JSON anti-duplicati)</b><br>
+            <input type="file" accept=".json" style="margin-top:8px" onchange="importListato(event)">
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-weight:800;margin-bottom:10px">Allievi Registrati (${Object.keys(state.users).length})</div>
+          ${Object.keys(state.users).map(u => {
+            const h = state.users[u].history || [];
+            return `<div style="border:1px solid #CBD5E1;border-radius:10px;padding:12px;margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <b>${u}</b>
+                <button class="icon-btn" style="color:#DC2626" onclick="delete state.users['${u}'];saveState();render()">Elimina</button>
+              </div>
+              ${h.map((item, hi) => `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed #CBD5E1;font-size:13px">
+                <span>${item.subName} • ${item.date} • <b style="color:${item.passed?'#16A34A':'#DC2626'}">${item.passed?'IDONEO':'RESPINTO'}</b> (${item.errors} err)</span>
+                <button class="icon-btn" onclick="printSheet('${u}', ${hi})">Stampa Scheda Ufficiale</button>
+              </div>`).join('') || '<div style="font-size:12px;color:#64748B;margin-top:4px">Nessuna simulazione svolta</div>'}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+let lastResult = null;
+function startQuiz(mode, topicId) {
+  quizMode = mode; qIdx = 0; answers = {}; flagged = {};
+  const pool = [...BASE_QUIZ, ...state.customQuestions].sort(() => Math.random() - 0.5);
+  const count = mode === 'sim' ? currentSub.total : 10;
+  quizList = Array.from({length: count}, (_, i) => pool[i % pool.length]);
+  if (mode === 'sim') {
+    timerSec = currentSub.mins * 60;
+    clearInterval(timerInt);
+    timerInt = setInterval(() => { timerSec--; if (timerSec <= 0) finishSim(); else if (view === 'quiz') render(); }, 1000);
+  }
+  view = 'quiz'; render();
+}
+
+function answerQ(val) {
+  answers[qIdx] = val;
+  if (quizMode === 'topic') {
+    const p = getProg(currentSub.id);
+    const tid = quizList[qIdx].topic || 1;
+    p.topics[tid] = Math.min(100, (p.topics[tid] || 0) + 10);
+    if (val === quizList[qIdx].ans) p.right++; else { p.wrong++; p.errors.push(quizList[qIdx]); }
+    saveState();
+  }
+  render();
+}
+
+function askCloseQuiz() {
+  if (Object.keys(answers).length < quizList.length) {
+    showModal(t('closeWarn'), () => { clearInterval(timerInt); view = 'license'; render(); });
+  } else { clearInterval(timerInt); view = 'license'; render(); }
+}
+    function askSubmitQuiz() {
+if (quizMode === 'topic') { view = 'license'; render(); return; }
+if (Object.keys(answers).length < quizList.length) {
+showModal(t('emptyWarn'), finishSim);
+} else finishSim();
+}
+function finishSim() {
+clearInterval(timerInt);
+let errors = 0; const wrongList = []; const details = [];
+quizList.forEach((q, i) => {
+const ok = answers[i] === q.ans;
+if (!ok) { errors++; wrongList.push(q); }
+details.push({ text: q.text, ans: q.ans, userAns: answers[i] });
+});
+const passed = errors <= currentSub.maxErr;
+const grp = currentSub.id.startsWith('NAUT') ? 'naut' : (['AM','A','B','REV_AM','REV_ALL'].includes(currentSub.id) ? 'ab' : 'sup');
+const rArr = RHYMES[grp][passed ? 'ok' : 'ko'];
+const rhyme = rArr[Math.floor(Math.random() * rArr.length)];
+const p = getProg(currentSub.id);
+p.right += (quizList.length - errors); p.wrong += errors;
+if (passed) p.simPassed = true;
+state.users[state.currentUser].history.unshift({ subName: currentSub.name, date: new Date().toLocaleString('it-IT'), passed, errors, total: quizList.length, details });
+saveState();
+lastResult = { errors, wrongList, rhyme };
+view = 'result'; render();
+playTone(passed); speak(rhyme);
+}
+function tryUnlock() {
+const p = getProg(currentSub.id);
+const all100 = TOPICS_AB.every(tp => (p.topics[tp.id] || 0) >= 100);
+if (!all100 || !p.simPassed) { showModal(t('lockWarn'), null, true); return; }
+p.unlocked = true; p.unlockDate = new Date().toLocaleDateString('it-IT'); saveState(); render();
+}
+function openAdminLogin() {
+document.getElementById('modal-root').innerHTML = <div class="modal-bg"><div class="modal-box"> <div style="font-weight:900;font-size:18px;margin-bottom:12px">Accesso Riservato Admin</div> <input id="adm-u" placeholder="Nome Utente" style="width:100%;padding:10px;border:1.5px solid #CBD5E1;border-radius:8px;margin-bottom:8px"> <input id="adm-p" type="password" placeholder="Password" style="width:100%;padding:10px;border:1.5px solid #CBD5E1;border-radius:8px;margin-bottom:12px"> <div style="display:flex;gap:8px"> <button class="icon-btn" style="flex:1" onclick="closeModal()">Annulla</button> <button class="primary-btn" style="flex:1" onclick="checkAdmin()">Entra</button> </div> </div></div>;
+}
+function checkAdmin() {
+if (document.getElementById('adm-u').value === state.adminUser && document.getElementById('adm-p').value === state.adminPass) {
+closeModal(); view = 'admin'; render();
+} else alert('Credenziali non valide');
+}
+function importListato(e) {
+const f = e.target.files[0]; if (!f) return;
+const r = new FileReader();
+r.onload = () => {
+try {
+const arr = JSON.parse(r.result);
+const existing = new Set([...BASE_QUIZ, ...state.customQuestions].map(x => x.text.trim().toLowerCase()));
+let added = 0;
+arr.forEach(item => { if (item.text && !existing.has(item.text.trim().toLowerCase())) { state.customQuestions.push(item); existing.add(item.text.trim().toLowerCase()); added++; } });
+saveState(); alert('Importate ' + added + ' nuove domande (duplicati scartati).');
+} catch { alert('Formato JSON non valido'); }
+};
+r.readAsText(f);
+}
+function printSheet(userName, idx) {
+const item = state.users[userName].history[idx];
+const w = window.open('', '_blank');
+w.document.write(`Scheda Ufficialebody{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:12px}td,th{border:1.5px solid #000;padding:6px}.box{width:26px;text-align:center;font-weight:900}
+
+QUIZ PATENTE 4.0 – RIEPILOGO SCHEDA D'ESAME
+Candidato: \({userName}</b><br>Patente Richiesta: <b>\){item.subName}
+	Data: \({item.date}<br>Domande: \){item.total} | Esatte: \({item.total - item.errors} | Errate: \){item.errors}
+Esito Esame: ${item.passed ? 'IDONEO' : 'RESPINTO'}
+
+{item.details.map((d, i) => {
+const wrong = d.userAns !== d.ans;
+const vCell = (d.ans===true?'●':'') + (d.userAns===true?' X':'');
+const fCell = (d.ans===false?'●':'') + (d.userAns===false?' X':'');
+return `<tr style="{wrong?'background:#FEE2E2':''}">\({i+1}) \){d.text}\({vCell}</td><td class="box">\){fCell}`;
+}).join('')}
+
+Figura
+	Domanda	V	F
+
+window.print()</script>`);
+w.document.close();
+}
+function showModal(msg, onYes, singleOk) {
+document.getElementById('modal-root').innerHTML = <div class="modal-bg"><div class="modal-box" style="text-align:center"> <div style="font-weight:800;font-size:16px;margin-bottom:18px">${msg}</div> <div style="display:flex;gap:10px"> ${singleOk ? OK:${t('yes')}${t('no')}} </div> </div></div>;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+render();
+  </script>
+</body>
+</html>
