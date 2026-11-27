@@ -820,12 +820,9 @@ const vCell = (d.ans===true?'●':'') + (d.userAns===true?' X':'');
 const fCell = (d.ans===false?'●':'') + (d.userAns===false?' X':'');
 return `<tr style="{wrong?'background:#FEE2E2':''}">\({i+1}) \){d.text}\({vCell}</td><td class="box">\){fCell}`;
 }).join('')}
-
-Figura
-	Domanda	V	F
-
-window.print()</scr" + "ipt>`);
-w.document.close();
+	  </table></body></html>`);
+  w.document.close();
+  setTimeout(function() { w.print(); }, 300);
 }
 function showModal(msg, onYes, singleOk) {
 document.getElementById('modal-root').innerHTML = <div class="modal-bg"><div class="modal-box" style="text-align:center"> <div style="font-weight:800;font-size:16px;margin-bottom:18px">${msg}</div> <div style="display:flex;gap:10px"> ${singleOk ? OK:${t('yes')}${t('no')}} </div> </div></div>;
